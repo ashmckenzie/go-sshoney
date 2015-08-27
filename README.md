@@ -70,12 +70,12 @@ SSHoney is now logging to stdout and `/var/log/sshoney`.  It's also listening on
 1. You are not locked out of a remote server by default
 2. The SSHoney service is not running as root
 
-Proceed to the [Running live](#running_live) section for the best way to run this on a real server.
+Proceed to the [Running live](#running-live) section for the best way to run this on a real server.
 
 Running live
 ------------
 
-SSHoney listens on port 2222 by default.  This can be changed by prefixing the `./sshoney` command with `PORT=<PORT>`:
+SSHoney listens on port 2222 by default.  This can be changed by prefixing the `sshoney` command with `PORT=<PORT>`:
 
 e.g.
 
@@ -98,9 +98,8 @@ sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 22 -j REDIRECT --to-po
 This can again, be customised by prefixing the `make` command with `PORT=<PORT>`:
 
 $ PORT=2223 make -f ${GOPATH}/src/github.com/ashmckenzie/sshoney/Makefile show_iptables_rule
-==========================================================================================
+
 WARNING: Please, please be very careful when adding this rule you don't lock yourself out!
-==========================================================================================
 
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 22 -j REDIRECT --to-port 2223
 ```
