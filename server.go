@@ -13,21 +13,17 @@ import (
   "github.com/rifflock/lfshook"
 )
 
-var (
-	DEFAULT_SHELL string = "sh"
-)
-
 func setupLogging() {
   logLevel := log.InfoLevel
   if os.Getenv("DEBUG") == "true" { logLevel = log.DebugLevel }
   log.SetLevel(logLevel)
 
 	logrusFileHook := lfshook.NewHook(lfshook.PathMap{
-	  log.InfoLevel : "/tmp/sshoney.log",
-	  log.WarnLevel : "/tmp/sshoney.log",
-	  log.ErrorLevel : "/tmp/sshoney.log",
-	  log.FatalLevel : "/tmp/sshoney.log",
-	  log.PanicLevel : "/tmp/sshoney.log",
+	  log.InfoLevel : "/var/log/sshoney.log",
+	  log.WarnLevel : "/var/log/sshoney.log",
+	  log.ErrorLevel : "/var/log/sshoney.log",
+	  log.FatalLevel : "/var/log/sshoney.log",
+	  log.PanicLevel : "/var/log/sshoney.log",
   })
 	log.AddHook(logrusFileHook)
 
@@ -71,7 +67,7 @@ func main() {
 			continue
 		}
 
-		log.Printf("new TCP connection from %s", tcpConn.RemoteAddr())
+		log.Debugf("new TCP connection from %s", tcpConn.RemoteAddr())
 
 		sshConn, _, _, err := ssh.NewServerConn(tcpConn, sshConfig)
 		if err != nil {

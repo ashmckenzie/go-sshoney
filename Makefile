@@ -8,10 +8,10 @@ deps:
 	go get ./...
 
 all: deps
-	go build -o ssh_h0neyp0t
+	go build -o sshoney
 
 clean:
-	rm -f ssh_h0neyp0tn
+	rm -f sshoney
 
 run:
 	DEBUG="$(DEBUG)" PORT="$(PORT)" go run server.go
