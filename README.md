@@ -88,17 +88,20 @@ Once you have SSHoney running (ideally as the least privileged user, e.g. `nobod
 
 ```shell
 $ make -f ${GOPATH}/src/github.com/ashmckenzie/sshoney/Makefile show_iptables_rule
-
+==========================================================================================
 WARNING: Please, please be very careful when adding this rule you don't lock yourself out!
+==========================================================================================
 
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 22 -j REDIRECT --to-port 2222
 ```
 
 This can again, be customised by prefixing the `make` command with `PORT=<PORT>`:
 
+```shell
 $ PORT=2223 make -f ${GOPATH}/src/github.com/ashmckenzie/sshoney/Makefile show_iptables_rule
-
+==========================================================================================
 WARNING: Please, please be very careful when adding this rule you don't lock yourself out!
+==========================================================================================
 
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 22 -j REDIRECT --to-port 2223
 ```
