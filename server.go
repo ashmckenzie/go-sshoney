@@ -7,17 +7,29 @@ import (
 	"io/ioutil"
 	"log/syslog"
 
-	"golang.org/x/crypto/ssh"
   log "github.com/Sirupsen/logrus"
   logrus_syslog "github.com/Sirupsen/logrus/hooks/syslog"
+	"golang.org/x/crypto/ssh"
   "github.com/rifflock/lfshook"
+  // "github.com/codegangsta/cli"
 )
+
+func setupCLI() {
+	// cli.NewApp().Run(os.Args)
+}
 
 func setupLogging() {
   logLevel := log.InfoLevel
   if os.Getenv("DEBUG") == "true" { logLevel = log.DebugLevel }
   log.SetLevel(logLevel)
 
+	log.SetFormatter(&log.TextFormatter{DisableColors: true})
+
+	setupFileLogging()
+	setupSyslogLogging()
+}
+
+func setupFileLogging() {
 	logrusFileHook := lfshook.NewHook(lfshook.PathMap{
 	  log.InfoLevel : "/var/log/sshoney.log",
 	  log.WarnLevel : "/var/log/sshoney.log",
@@ -26,17 +38,15 @@ func setupLogging() {
 	  log.PanicLevel : "/var/log/sshoney.log",
   })
 	log.AddHook(logrusFileHook)
-
-	logrusSysLogHook, err := logrus_syslog.NewSyslogHook("", "localhost", syslog.LOG_INFO, "sshoney")
-	if err != nil { log.Fatalf("Failed to add syslog logrus hook - %s", err) }
-  log.AddHook(logrusSysLogHook)
-
-	log.SetFormatter(&log.TextFormatter{DisableColors: true})
 }
 
-func main() {
-  setupLogging()
+func setupSyslogLogging() {
+	logrusSysLogHook, err := logrus_syslog.NewSyslogHook("", "localhost", syslog.LOG_INFO, "sshoney")
+	if err != nil { log.Fatalf("Failed to add syslog logrus hook - %s", err) }
+	log.AddHook(logrusSysLogHook)
+}
 
+func setupSSHListener() (ssh.ServerConfig, net.Listener) {
 	sshConfig := &ssh.ServerConfig{
 		NoClientAuth: true,
 	}
@@ -59,23 +69,37 @@ func main() {
 
 	log.Printf("listening on %s", port)
 
+	return *sshConfig, listener;
+}
+
+func processConnections(sshConfig *ssh.ServerConfig, listener net.Listener) {
 	for {
 		tcpConn, err := listener.Accept()
 		if err != nil {
 			log.Debugf("failed to accept incoming connection (%s)", err)
 			continue
 		}
-
-		log.Debugf("new TCP connection from %s", tcpConn.RemoteAddr())
-
-		sshConn, _, _, err := ssh.NewServerConn(tcpConn, sshConfig)
-		if err != nil {
-			log.Debugf("failed to handshake (%s)", err)
-			continue
-		}
-
-		log.Printf("new SSH connection from %s (%s)", sshConn.RemoteAddr(), sshConn.ClientVersion())
-
-    sshConn.Close()
+		go handleConnection(sshConfig, tcpConn)
 	}
+}
+
+func handleConnection(sshConfig *ssh.ServerConfig, tcpConn net.Conn) {
+	defer tcpConn.Close()
+
+	log.Debugf("new TCP connection from %s", tcpConn.RemoteAddr())
+
+	sshConn, _, _, err := ssh.NewServerConn(tcpConn, sshConfig)
+	if err != nil {
+		log.Debugf("failed to handshake (%s)", err)
+	} else {
+		log.Printf("new SSH connection from %s (%s)", sshConn.RemoteAddr(), sshConn.ClientVersion())
+		sshConn.Close()
+	}
+}
+
+func main() {
+	setupCLI()
+	setupLogging()
+	sshConfig, listener := setupSSHListener()
+	processConnections(&sshConfig, listener)
 }
