@@ -3,21 +3,27 @@
 
 PORT ?= 2222
 DEBUG ?= false
+HOST_KEY ?= $(filter-out $@, $(MAKECMDGOALS))
 
 deps:
 	go get ./...
 
-all: deps
+test:
+	go test
+
+all: deps test build
+
+build:
 	go build -o sshoney
 
 clean:
 	rm -f sshoney
 
 run:
-	DEBUG="$(DEBUG)" PORT="$(PORT)" go run server.go
+	DEBUG="$(DEBUG)" PORT="$(PORT)" go run server.go $(filter-out $@, $(MAKECMDGOALS))
 
 gen_ssh_key:
-	ssh-keygen -f ./host.key -N ''
+	ssh-keygen -N '' -f $(HOST_KEY)
 
 show_iptables_rule:
 	@echo "=========================================================================================="
