@@ -4,6 +4,8 @@ SSHoney
 SSHoney is an SSH honeypot designed purely to log the SSH connections on a given port.  It
 does not go any further than that.
 
+It is inspired by https://github.com/Scalingo/go-ssh-examples/blob/master/server_complex.go (thanks @max107 :))
+
 How?
 ----
 
@@ -14,10 +16,10 @@ to `/var/log/sshoney.log`.
 Basic setup
 -----------
 
-Install the binary:
+Install the source and the binary:
 
 ```shell
-go get -u github.com/ashmckenzie/sshoney`
+go get -u github.com/ashmckenzie/sshoney
 ```
 
 Ensure `${GOPATH}/bin` is in your `${PATH}` (so you can run `sshoney` from any directory):
@@ -130,6 +132,6 @@ e.g.
 Logstash
 --------
 
-Logstash is awesome so I included a config and pattern helper in this repo to make it easier to ingest SSHoney log entries into Logstash!
+Logstash is a killer app, so I included a config and pattern helper in this repo to make it easier to ingest SSHoney log entries into Logstash!
 
 Included is `logstash/filter.conf` that defines a filter and `logstash/patterns/sshoney.pattern` to make parsing easier.

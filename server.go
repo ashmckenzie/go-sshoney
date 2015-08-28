@@ -46,7 +46,6 @@ func main() {
 
 	private, err := ssh.ParsePrivateKey(privateBytes)
 	if err != nil { log.Fatal("Failed to parse private key") }
-
 	sshConfig.AddHostKey(private)
 
   port := "2222"
