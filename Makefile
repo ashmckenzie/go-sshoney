@@ -3,7 +3,6 @@
 
 PORT ?= 2222
 DEBUG ?= false
-HOST_KEY ?= $(filter-out $@, $(MAKECMDGOALS))
 
 deps:
 	go get ./...
@@ -23,7 +22,7 @@ run:
 	DEBUG="$(DEBUG)" PORT="$(PORT)" go run server.go $(filter-out $@, $(MAKECMDGOALS))
 
 gen_ssh_key:
-	ssh-keygen -N '' -f $(HOST_KEY)
+	@#ssh-keygen -N '' -f host.key
 
 show_iptables_rule:
 	@echo "=========================================================================================="

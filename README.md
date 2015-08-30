@@ -1,7 +1,7 @@
 SSHoney
 =======
 
-SSHoney is an SSH honeypot designed purely to log the SSH connections on a given port.  It
+SSHoney is an SSH honeypot designed purely to log the SSH connection attempts on a given port.  It
 does not go any further than that.
 
 It is inspired by https://github.com/Scalingo/go-ssh-examples/blob/master/server_complex.go (thanks @max107 :))
@@ -123,11 +123,11 @@ e.g.
 
 Specific format for SSH connection attempts:
 
-`time="<TIMESTAMP>" level="<LEVEL>" msg="new SSH connection from <IP>:<RANDOM_PORT> (<SSH_CLIENT_VERSION>)"`
+`time="<TIMESTAMP>" level="<LEVEL>" msg="SSH connection from ip=[<IP>], username=[<USERNAME>], password=[<PASSWORD>], version=[<SSH_CLIENT_VERSION>)"`
 
 e.g.
 
-`time="2015-08-28T09:01:23+10:00" level=info msg="new SSH connection from 127.0.0.1:56429 (SSH-2.0-OpenSSH_6.2)"`
+`time="2015-08-28T09:01:23+10:00" level=info msg="SSH connection from ip=[127.0.0.1], username=[root], password=[password], version=[SSH-2.0-OpenSSH_6.2]"`
 
 Logstash
 --------

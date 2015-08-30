@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"io/ioutil"
 	"log/syslog"
 
@@ -11,57 +12,52 @@ import (
   logrus_syslog "github.com/Sirupsen/logrus/hooks/syslog"
 	"golang.org/x/crypto/ssh"
   "github.com/rifflock/lfshook"
-  // "github.com/codegangsta/cli"
+  "github.com/codegangsta/cli"
+	// "github.com/davecgh/go-spew/spew"
 )
 
-func setupCLI() {
-	// cli.NewApp().Run(os.Args)
-}
-
-func setupLogging() {
+func setupLogging(logToSyslog bool, logFile string) {
   logLevel := log.InfoLevel
   if os.Getenv("DEBUG") == "true" { logLevel = log.DebugLevel }
   log.SetLevel(logLevel)
 
 	log.SetFormatter(&log.TextFormatter{DisableColors: true})
 
-	setupFileLogging()
-	setupSyslogLogging()
-}
-
-func setupFileLogging() {
-	logrusFileHook := lfshook.NewHook(lfshook.PathMap{
-	  log.InfoLevel : "/var/log/sshoney.log",
-	  log.WarnLevel : "/var/log/sshoney.log",
-	  log.ErrorLevel : "/var/log/sshoney.log",
-	  log.FatalLevel : "/var/log/sshoney.log",
-	  log.PanicLevel : "/var/log/sshoney.log",
-  })
-	log.AddHook(logrusFileHook)
+	if (logToSyslog) { setupSyslogLogging() }
+	if (len(logFile) > 0) { setupFileLogging(logFile) }
 }
 
 func setupSyslogLogging() {
-	logrusSysLogHook, err := logrus_syslog.NewSyslogHook("", "localhost", syslog.LOG_INFO, "sshoney")
+	log.Debugf("Logging to syslog")
+	logrusSysLogHook, err := logrus_syslog.NewSyslogHook("", "localhost:5140", syslog.LOG_INFO, "sshoney")
 	if err != nil { log.Fatalf("Failed to add syslog logrus hook - %s", err) }
 	log.AddHook(logrusSysLogHook)
 }
 
-func setupSSHListener() (ssh.ServerConfig, net.Listener) {
+func setupFileLogging(logFile string) {
+	log.Debugf("Logging to %s", logFile)
+	logrusFileHook := lfshook.NewHook(lfshook.PathMap{
+	  log.InfoLevel : logFile, log.WarnLevel : logFile, log.ErrorLevel : logFile, log.FatalLevel : logFile, log.PanicLevel : logFile,
+  })
+	log.AddHook(logrusFileHook)
+}
+
+func setupSSHListener(port string, hostKey string) (ssh.ServerConfig, net.Listener) {
 	sshConfig := &ssh.ServerConfig{
-		NoClientAuth: true,
+		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
+			remoteAddr := c.RemoteAddr().String()
+			ip := remoteAddr[0:strings.Index(remoteAddr, ":")]
+			log.Printf("SSH connection from ip=[%s], username=[%s], password=[%s], version=[%s]", ip, c.User(), pass, c.ClientVersion())
+			return nil, fmt.Errorf("invalid credentials")
+		},
 	}
 
-	privateBytes, err := ioutil.ReadFile("./host.key")
-	if err != nil { log.Fatal("Failed to load private key ./host.key.  Run make gen_ssh_key") }
+	privateBytes, err := ioutil.ReadFile(hostKey)
+	if err != nil { log.Fatalf("Failed to load private key %s.  Run make gen_ssh_key %s", hostKey, hostKey) }
 
 	private, err := ssh.ParsePrivateKey(privateBytes)
 	if err != nil { log.Fatal("Failed to parse private key") }
 	sshConfig.AddHostKey(private)
-
-  port := "2222"
-  if os.Getenv("PORT") != "" {
-    port = os.Getenv("PORT")
-  }
 
   portComplete := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp4", portComplete)
@@ -85,21 +81,48 @@ func processConnections(sshConfig *ssh.ServerConfig, listener net.Listener) {
 
 func handleConnection(sshConfig *ssh.ServerConfig, tcpConn net.Conn) {
 	defer tcpConn.Close()
-
 	log.Debugf("new TCP connection from %s", tcpConn.RemoteAddr())
 
 	sshConn, _, _, err := ssh.NewServerConn(tcpConn, sshConfig)
 	if err != nil {
 		log.Debugf("failed to handshake (%s)", err)
 	} else {
-		log.Printf("new SSH connection from %s (%s)", sshConn.RemoteAddr(), sshConn.ClientVersion())
 		sshConn.Close()
 	}
 }
 
 func main() {
-	setupCLI()
-	setupLogging()
-	sshConfig, listener := setupSSHListener()
-	processConnections(&sshConfig, listener)
+	app := cli.NewApp()
+	app.Name = "sshoney"
+	app.Usage = "SSH honeypot"
+	app.Version = "0.1.0"
+
+	app.Flags = []cli.Flag {
+		cli.BoolFlag{ Name: "log-to-syslog", Usage: "log to syslog" },
+		cli.StringFlag{
+	    Name: "port",
+	    Usage: "port to listen on",
+			Value: "2222",
+			EnvVar: "PORT",
+	  },
+		cli.StringFlag{
+	    Name: "host-key",
+	    Usage: "SSH private host key",
+			Value: "host.key",
+			EnvVar: "HOST_KEY",
+	  },
+	  cli.StringFlag{
+	    Name: "log-file",
+	    Usage: "path to logfile",
+			EnvVar: "LOG_FILE",
+	  },
+	}
+
+	app.Action = func(c *cli.Context) {
+		setupLogging(c.Bool("log-to-syslog"), c.String("log-file"))
+		sshConfig, listener := setupSSHListener(c.String("port"), c.String("host-key"))
+		processConnections(&sshConfig, listener)
+	}
+
+	app.Run(os.Args)
 }
