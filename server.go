@@ -29,7 +29,7 @@ func setupLogging(logToSyslog bool, logFile string) {
 
 func setupSyslogLogging() {
 	log.Debugf("Logging to syslog")
-	logrusSysLogHook, err := logrus_syslog.NewSyslogHook("", "localhost:5140", syslog.LOG_INFO, "sshoney")
+	logrusSysLogHook, err := logrus_syslog.NewSyslogHook("", "localhost:514", syslog.LOG_INFO, "sshoney")
 	if err != nil { log.Fatalf("Failed to add syslog logrus hook - %s", err) }
 	log.AddHook(logrusSysLogHook)
 }
