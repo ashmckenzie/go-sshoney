@@ -10,13 +10,12 @@ How?
 ----
 
 SSHoney works by listening on a non-privileged port (2222) by default and pretends to be an SSH
-server.  When an SSH client connects, SSHoney simply logs the connection details to syslog and
-to `/var/log/sshoney.log`.
+server.  When an SSH client connects, SSHoney logs the connection details (IP, username, password and SSH clienr version) to syslog and/or a log file of your choosing (e.g `/var/log/sshoney.log`).
 
 Basic setup
 -----------
 
-Install the source and the binary:
+Install the source and binary:
 
 ```shell
 go get -u github.com/ashmckenzie/sshoney
@@ -67,7 +66,7 @@ $ sshoney
 time="2015-08-28T08:59:58+10:00" level=info msg="listening on 2222"
 ```
 
-SSHoney is now logging to stdout and `/var/log/sshoney`.  It's also listening on port 2222 which is not the standard SSH port (22 is).  This is deliberately setup this way to ensure:
+SSHoney is now logging to stdout and listening on port 2222 which is not the standard SSH port (22 is).  This is deliberately setup this way to ensure:
 
 1. You are not locked out of a remote server by default
 2. The SSHoney service is not running as root
@@ -106,6 +105,21 @@ WARNING: Please, please be very careful when adding this rule you don't lock you
 ==========================================================================================
 
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 22 -j REDIRECT --to-port 2223
+```
+
+Logging
+-------
+
+By default, all logs are sent to stdout.  You should also log to syslog:
+
+```shell
+$ sshoney --log-to-syslog
+```
+
+and/or a log file:
+
+```shell
+$ sshoney --log-file /var/log/sshoney.log
 ```
 
 Log format
