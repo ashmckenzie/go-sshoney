@@ -149,3 +149,8 @@ Logstash
 Logstash is a killer app, so I included a config and pattern helper in this repo to make it easier to ingest SSHoney log entries into Logstash!
 
 Included is `logstash/filter.conf` that defines a filter and `logstash/patterns/sshoney.pattern` to make parsing easier.
+
+Example Logstash dashboard
+--------------------------
+
+![Kibana](http://i.imgur.com/cXxv5f6.png)
