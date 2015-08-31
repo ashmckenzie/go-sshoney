@@ -9,8 +9,8 @@ It is inspired by https://github.com/Scalingo/go-ssh-examples/blob/master/server
 How?
 ----
 
-SSHoney works by listening on a non-privileged port (2222) by default and pretends to be an SSH
-server.  When an SSH client connects, SSHoney logs the connection details (IP, username, password and SSH clienr version) to syslog and/or a log file of your choosing (e.g `/var/log/sshoney.log`).
+SSHoney works by listening on a non-privileged port (2222 by default) and pretends to be an SSH
+server.  When an SSH client connects, SSHoney logs the connection details (IP, username, password and SSH clienr version) to stdout and/or syslog, a log file of your choosing (e.g `/var/log/sshoney.log`).
 
 Basic setup
 -----------
