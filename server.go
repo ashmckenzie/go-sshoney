@@ -16,26 +16,26 @@ import (
 	// "github.com/davecgh/go-spew/spew"
 )
 
-func setupLogging(logToSyslog bool, logFile string) {
+func setupLogging(logToSyslog bool, syslogAddr string, syslogProgramName string, logFile string) {
   logLevel := log.InfoLevel
   if os.Getenv("DEBUG") == "true" { logLevel = log.DebugLevel }
   log.SetLevel(logLevel)
 
 	log.SetFormatter(&log.TextFormatter{DisableColors: true})
 
-	if (logToSyslog) { setupSyslogLogging() }
+	if (logToSyslog)      { setupSyslogLogging(syslogAddr, syslogProgramName) }
 	if (len(logFile) > 0) { setupFileLogging(logFile) }
 }
 
-func setupSyslogLogging() {
-	log.Debugf("Logging to syslog")
-	logrusSysLogHook, err := logrus_syslog.NewSyslogHook("", "localhost:514", syslog.LOG_INFO, "sshoney")
+func setupSyslogLogging(syslogAddr string, syslogProgramName string) {
+	log.Printf("Logging to syslog addr=[%s], program_name=[%s]", syslogAddr, syslogProgramName)
+	logrusSysLogHook, err := logrus_syslog.NewSyslogHook("udp", syslogAddr, syslog.LOG_INFO, syslogProgramName)
 	if err != nil { log.Fatalf("Failed to add syslog logrus hook - %s", err) }
 	log.AddHook(logrusSysLogHook)
 }
 
 func setupFileLogging(logFile string) {
-	log.Debugf("Logging to %s", logFile)
+	log.Printf("Logging to file=[%s]", logFile)
 	logrusFileHook := lfshook.NewHook(lfshook.PathMap{
 	  log.InfoLevel : logFile, log.WarnLevel : logFile, log.ErrorLevel : logFile, log.FatalLevel : logFile, log.PanicLevel : logFile,
   })
@@ -106,6 +106,18 @@ func main() {
 			EnvVar: "PORT",
 	  },
 		cli.StringFlag{
+	    Name: "syslog-addr",
+	    Usage: "host:port of the syslog server",
+			Value: "localhost:514",
+			EnvVar: "SYSLOG_ADDR",
+	  },
+		cli.StringFlag{
+	    Name: "syslog-program-name",
+	    Usage: "syslog program name to use",
+			Value: "sshoney",
+			EnvVar: "SYSLOG_PROGRAM_NAME",
+	  },
+		cli.StringFlag{
 	    Name: "host-key",
 	    Usage: "SSH private host key",
 			Value: "host.key",
@@ -119,7 +131,7 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) {
-		setupLogging(c.Bool("log-to-syslog"), c.String("log-file"))
+		setupLogging(c.Bool("log-to-syslog"), c.String("syslog-addr"), c.String("syslog-program-name"), c.String("log-file"))
 		sshConfig, listener := setupSSHListener(c.String("port"), c.String("host-key"))
 		processConnections(&sshConfig, listener)
 	}
