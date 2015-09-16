@@ -17,7 +17,7 @@ func setupLogging(logToSyslog bool, syslogAddr string, syslogProgramName string,
   if os.Getenv("DEBUG") == "true" { logLevel = log.DebugLevel }
   log.SetLevel(logLevel)
 
-	// log.SetFormatter(&log.TextFormatter{DisableColors: true})
+	log.SetFormatter(&log.TextFormatter{DisableColors: true})
 
 	if (logToSyslog)      { setupSyslogLogging(syslogAddr, syslogProgramName) }
 	if (len(logFile) > 0) { setupFileLogging(logFile) }

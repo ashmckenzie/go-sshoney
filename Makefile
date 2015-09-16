@@ -13,7 +13,7 @@ test:
 all: deps test build
 
 build:
-	go build cmd/sshoney -o sshoney
+	go build
 
 clean:
 	rm -f sshoney
@@ -22,7 +22,7 @@ run:
 	DEBUG="$(DEBUG)" PORT="$(PORT)" go run cmd/sshoney/main.go $(filter-out $@, $(MAKECMDGOALS))
 
 gen_ssh_key:
-	@#ssh-keygen -N '' -f host.key
+	@ssh-keygen -N '' -f host.key
 
 show_iptables_rule:
 	@echo "=========================================================================================="

@@ -38,6 +38,7 @@ time="2015-08-28T08:48:35+10:00" level=fatal msg="Failed to load private key ./h
 That's cool, let's generate one!:
 
 ```shell
+$ cd /tmp
 $ make -f ${GOPATH}/src/github.com/ashmckenzie/sshoney/Makefile gen_ssh_key
 ssh-keygen -f ./host.key -N ''
 Generating public/private rsa key pair.
