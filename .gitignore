@@ -2,4 +2,4 @@
 tmp
 data
 host.key*
-sshoney
+./sshoney

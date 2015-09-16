@@ -13,13 +13,13 @@ test:
 all: deps test build
 
 build:
-	go build -o sshoney
+	go build cmd/sshoney -o sshoney
 
 clean:
 	rm -f sshoney
 
 run:
-	DEBUG="$(DEBUG)" PORT="$(PORT)" go run server.go $(filter-out $@, $(MAKECMDGOALS))
+	DEBUG="$(DEBUG)" PORT="$(PORT)" go run cmd/sshoney/main.go $(filter-out $@, $(MAKECMDGOALS))
 
 gen_ssh_key:
 	@#ssh-keygen -N '' -f host.key

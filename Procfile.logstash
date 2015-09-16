@@ -1,0 +1,3 @@
+logstash: logstash agent -f ./logging/logstash --debug
+elasticsearch: elasticsearch
+kibana: sleep 10 ; kibana

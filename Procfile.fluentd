@@ -1,0 +1,3 @@
+fluentd: fluentd -c ./logging/fluentd/fluentd.conf -vv
+elasticsearch: elasticsearch
+kibana: sleep 10 ; kibana
