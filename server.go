@@ -2,11 +2,11 @@ package sshoney
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"strings"
-	"io/ioutil"
 
-  log "github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	// "github.com/davecgh/go-spew/spew"
 )
@@ -27,19 +27,25 @@ func setupSSHListener(port string, hostKey string) (ssh.ServerConfig, net.Listen
 	}
 
 	privateBytes, err := ioutil.ReadFile(hostKey)
-	if err != nil { log.Fatalf("Failed to load private key %s.  Run make gen_ssh_key %s", hostKey, hostKey) }
+	if err != nil {
+		log.Fatalf("Failed to load private key %s.  Run make gen_ssh_key %s", hostKey, hostKey)
+	}
 
 	private, err := ssh.ParsePrivateKey(privateBytes)
-	if err != nil { log.Fatal("Failed to parse private key") }
+	if err != nil {
+		log.Fatal("Failed to parse private key")
+	}
 	sshConfig.AddHostKey(private)
 
-  portComplete := fmt.Sprintf(":%s", port)
+	portComplete := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp4", portComplete)
-	if err != nil { log.Fatalf("failed to listen on *:%s", port) }
+	if err != nil {
+		log.Fatalf("failed to listen on *:%s", port)
+	}
 
 	log.Printf("listening on %s", port)
 
-	return *sshConfig, listener;
+	return *sshConfig, listener
 }
 
 func processConnections(sshConfig *ssh.ServerConfig, listener net.Listener) {
